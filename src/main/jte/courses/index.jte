@@ -1,16 +1,18 @@
-@import org.example.hexlet.CoursesPage
+@import org.example.courses.CoursesPage
+@import org.example.routes.NamedRoutes
+@import org.example.courses.CoursePage
 @param CoursesPage page
+@param CoursePage pg
 
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Хекслет</title>
-    </head>
-    <body>
+@template.layout.page (
+content = @`
         <h1>${page.getHeader()}</h1>
+    @if(pg.getFlash() != null)
+        <p>${pg.getFlash()}</p>
+    @endif
         @if(page.getCourses().isEmpty())
             <p>No courses yet</p>
+            <a href="${NamedRoutes.buildCoursPath()}">Add course</a>
         @else
             @for(var course : page.getCourses())
                 <div>
@@ -19,5 +21,5 @@
                 </div>
             @endfor
         @endif
-    </body>
-</html>
+`
+)

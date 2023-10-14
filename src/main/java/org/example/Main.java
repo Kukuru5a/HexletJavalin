@@ -1,74 +1,115 @@
 package org.example;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import io.javalin.Javalin;
 import io.javalin.rendering.template.JavalinJte;
-import org.example.hexlet.Course;
-import org.example.hexlet.CoursePage;
-import org.example.hexlet.CoursesPage;
+import org.example.controller.CourseController;
+import org.example.controller.SessionController;
+import org.example.courses.*;
+import org.example.repositories.BaseRepository;
+import org.example.routes.MainPage;
+import org.example.routes.NamedRoutes;
 import org.example.users.User;
-import org.example.users.UserPage;
+import org.example.controller.UserController;
 import org.example.users.UsersPage;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.stream.Collectors;
+
 
 public class Main {
-    public static void main(String[] args) {
-        Course course1 = new Course("name 1", "desc1");
-        Course course2 = new Course("name 2", "desc2");
-        Course course3 = new Course("name 3", "desc3");
-        course1.setId(0L);
-        course2.setId(1L);
-        course3.setId(2L);
 
+    public static Javalin getApp() throws IOException, SQLException {
+        var hikariConfig = new HikariConfig();
+        hikariConfig.setJdbcUrl("jdbc:h2:mem:my_project_1:DB_CLOSE_ELAY=-1");
+        var dataSource = new HikariDataSource(hikariConfig);
+        //routing
+        var url = DataBase.class.getClassLoader().getResources("schema.sql");
+        var file = new File(url.nextElement().getFile());
+        var sql = Files.lines(file.toPath()).collect(Collectors.joining("/n"));
+        //connection
+        try(var conn = dataSource.getConnection();
+        var stmt = conn.createStatement()) {
+            stmt.execute(sql);
+        }
+        BaseRepository.dataSource = dataSource;
+        var app = Javalin.create(config -> {
+            config.plugins.enableDevLogging();
 
-
-        List<Course> courseList = new ArrayList<>();
-        courseList.add(course1);
-        courseList.add(course2);
-        courseList.add(course3);
-        User usr1 = new User("roma", "roma@mail.ru");
-        User usr2 = new User("Kostya", "kst@mail.ru");
-        User usr3 = new User("Gosha", "geo@mail.ru");
-
-        List<User> userList = new ArrayList<>();
-        userList.add(usr1);
-        userList.add(usr2);
-        userList.add(usr3);
-
-
-
-
-        JavalinJte.init();
-
-        Javalin app = Javalin.create(config -> config.plugins.enableDevLogging());
-
-        app.get("/courses", ctx -> {
-            var header = "Programming courses";
-            var page = new CoursesPage(courseList, header);
-            ctx.render("courses/index.jte", Collections.singletonMap("page", page));
         });
-        app.get("/courses/{id}", ctx -> {
-            var id = ctx.pathParam("id");
-            var course = courseList.get(Integer.parseInt(id));
-            var page = new CoursePage(course);
-            ctx.render("courses/show.jte", Collections.singletonMap("page", page));
-        });
-        app.get("/", ctx -> {
-            var header = "Welcome";
-            var page = new UsersPage(userList, header);
-            ctx.render("layout/page.jte", Collections.singletonMap("page", page));
-        });
-        app.get("/users", ctx -> {
-            var header = "User List";
-            var page = new UsersPage(userList, header);
-            ctx.render("users/index.jte", Collections.singletonMap("page", page));
-        });
+        // courses
+        app.get(NamedRoutes.coursesPath(), CourseController::index);
+        app.get(NamedRoutes.buildCoursPath(), CourseController::build);
+        app.post(NamedRoutes.coursesPath(), CourseController::create);
+        app.get(NamedRoutes.coursePath("{id}"), CourseController::show);
+        // users
+        app.get(NamedRoutes.usersPath(), UserController::index);
+        app.get(NamedRoutes.newUserPath(), UserController::build);
+        app.post(NamedRoutes.usersPath(), UserController::create);
+        // sessions
+        app.get("/sessions/build", SessionController::build);
+        app.post("/sessions", SessionController::create);
+        app.post("/sessions", SessionController::destroy);
+        // start app
+        app.start(8080);
 
-        app.start(7070);
-//        var app = Javalin.create (config -> {config.plugins.enableDevLogging();});
-//        app.get("/", ctx -> ctx.render("index.jte"));
-//        app.start(7070);
+        return app;
     }
+    public static void main(String[] args) throws SQLException, IOException {
+
+        var app = getApp();
+        app.start();
+
+
+
+
+
+
+
+
+
+//        Course course1 = new Course("Java 1", "desc1");
+//        Course course2 = new Course("PHP 2", "desc2");
+//        Course course3 = new Course("HTML 3", "desc3");
+//        course1.setId(0L);
+//        course2.setId(1L);
+//        course3.setId(2L);
+
+
+//        List<User> userList = new ArrayList<>();
+//
+//        JavalinJte.init();
+//
+//        Javalin app = Javalin.create(config -> config.plugins.enableDevLogging());
+
+        //Start testpage
+
+//        app.get("/",ctx -> {
+//            var visited = Boolean.valueOf(ctx.cookie("visited"));
+//            var page = new MainPage(ctx.sessionAttribute("currentUser"));
+//            ctx.render("index.jte", Collections.singletonMap("page", page));
+//            ctx.cookie("visited", String.valueOf(true));
+//        });
+//        app.get(NamedRoutes.coursesPath(), CourseController::flashMes);
+//        app.get(NamedRoutes.coursesPath(), CourseController::index); // Course list
+//        app.get(NamedRoutes.coursePath("{id}"), CourseController::show); /* -- Specific course -- */
+//        app.get(NamedRoutes.buildCoursPath(), CourseController::build);
+//        app.post(NamedRoutes.coursesPath(), CourseController::create); /* New course */
+
+//        app.get("/sessions/build,jte", SessionController::build);
+//        app.post("/sessions", SessionController::create);
+//        app.post("/sessions", SessionController::destroy);
+
+//        app.get(NamedRoutes.usersPath(), UserController::index); // User list
+//        app.get(NamedRoutes.newUserPath(), UserController::build); // Specific  user
+//        app.post("/users", UserController::create); // new user
+
+//        app.start(8080);
+    }
+
 }

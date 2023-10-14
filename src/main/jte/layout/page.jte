@@ -1,5 +1,8 @@
+@import org.example.routes.NamedRoutes
+@import org.example.dto.BasePage
 @import gg.jte.Content
 @param Content content
+@param BasePage page = null
 
 <!doctype html>
 <html lang="en">
@@ -7,12 +10,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Hexlet Javalin Example</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
 </head>
 <body>
-<p>
-    <a href="/users">Users</a>
-    <a href="/courses">Courses</a>
-</p>
+@if(page != null && page.getFlash() != null)
+    <p>${page.getFlash()}</p>
+@endif
 ${content}
 </body>
 </html>
