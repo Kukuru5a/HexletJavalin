@@ -29,13 +29,13 @@ public class Main {
         hikariConfig.setJdbcUrl("jdbc:h2:mem:my_project_1:DB_CLOSE_ELAY=-1");
         var dataSource = new HikariDataSource(hikariConfig);
         //routing
-        var url = DataBase.class.getClassLoader().getResources("schema.sql");
-        var file = new File(url.nextElement().getFile());
-        var sql = Files.lines(file.toPath()).collect(Collectors.joining("/n"));
+        var url = Main.class.getClassLoader().getResource("schema.sql");
+        var file = new File(url.getFile());
+        var sql = Files.lines(file.toPath()).collect(Collectors.joining("/"));
         //connection
         try(var conn = dataSource.getConnection();
-        var stmt = conn.createStatement()) {
-            stmt.execute(sql);
+        var statement = conn.createStatement()){
+            statement.execute(sql);
         }
         BaseRepository.dataSource = dataSource;
         var app = Javalin.create(config -> {
@@ -54,7 +54,11 @@ public class Main {
         // sessions
         app.get("/sessions/build", SessionController::build);
         app.post("/sessions", SessionController::create);
-        app.post("/sessions", SessionController::destroy);
+        // start list
+        app.get("/", ctx -> {
+            var page = new MainPage(ctx.sessionAttribute("currentUser"));
+           ctx.render("index.jte", Collections.singletonMap("page", page));
+        });
         // start app
         app.start(8080);
 
