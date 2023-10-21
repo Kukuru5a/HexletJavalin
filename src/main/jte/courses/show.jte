@@ -1,14 +1,10 @@
-@import org.example.hexlet.CoursePage
+@import org.example.courses.CoursePage
 @param CoursePage page
 
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Хекслет</title>
-</head>
-<body>
+@template.layout.page (
+    content = @`
     <p>${page.getCourse().getName()}</p>
     <p>${page.getCourse().getDescription()}</p>
-</body>
-</html>
+
+`
+)

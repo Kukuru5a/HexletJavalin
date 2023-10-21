@@ -27,7 +27,8 @@ dependencies {
     implementation("io.javalin:javalin-rendering:5.6.2")
     compileOnly ("org.projectlombok:lombok:1.18.28")
     annotationProcessor ("org.projectlombok:lombok:1.18.28")
-
+    implementation("com.h2database:h2:2.2.220")
+    implementation("com.zaxxer:HikariCP:5.0.1")
     testCompileOnly ("org.projectlombok:lombok:1.18.28")
     testAnnotationProcessor ("org.projectlombok:lombok:1.18.28")
 }
